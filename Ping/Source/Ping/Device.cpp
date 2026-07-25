@@ -98,10 +98,10 @@ Buffer Ping::Device::CreateBuffer(size_t size, BufferUsage usage, MemoryProperty
 	return Buffer(std::move(buffer));
 }
 
-std::optional<Image> Ping::Device::CreateImage(const std::string& path, Ping::ImageUsage usage) const
+std::optional<Image> Ping::Device::CreateImage(const std::string& path, Ping::ImageUsage usage, uint32_t rows, uint32_t columns) const
 {
 	std::optional<Backend::VulkanImage> vk_image =
-		Backend::VKManager::LoadVulkanImage(*vulkanContextPtr, path, Backend::ToVulkan(usage));
+		Backend::VKManager::LoadVulkanImage(*vulkanContextPtr, path, Backend::ToVulkan(usage), rows, columns);
 
 	if (!vk_image.has_value())
 	{
@@ -109,6 +109,27 @@ std::optional<Image> Ping::Device::CreateImage(const std::string& path, Ping::Im
 	}
 
 	return {std::move(vk_image)};
+}
+
+std::optional<std::vector<Image>>
+Ping::Device::CreateImages(const std::string& path, Ping::ImageUsage usage, uint32_t rows, uint32_t columns) const
+{
+	std::optional<std::vector<Backend::VulkanImage>> vk_images =
+		Backend::VKManager::LoadVulkanImages(*vulkanContextPtr, path, Backend::ToVulkan(usage), rows, columns);
+
+	std::vector<Image> images;
+
+	if (!vk_images.has_value())
+	{
+		return {};
+	}
+	
+	for (uint32_t i = 0; i < vk_images.value().size(); i++)
+	{
+		images.emplace_back(std::move(vk_images.value()[i]));
+	}
+
+	return images;
 }
 
 std::optional<Image> Ping::Device::CreateDepthBuffer(const SwapChain& swapchain) const

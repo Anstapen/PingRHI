@@ -188,7 +188,8 @@ public:
 		VulkanCommandBuffer&   cmd_buffer,
 		const vk::raii::Image& image,
 		vk::ImageLayout		   old_layout,
-		vk::ImageLayout		   new_layout);
+		vk::ImageLayout		   new_layout,
+		uint32_t			   layer_count);
 
 	/**
 	 * Begins dynamic rendering into `swapchain`'s image view at `imageIndex` (clearing to opaque black)
@@ -215,8 +216,19 @@ public:
 		vk::raii::Buffer&	 dstBuffer,
 		vk::DeviceSize		 size);
 
-	static std::optional<VulkanImage>
-	LoadVulkanImage(const VulkanContext& context, const std::string& path, vk::ImageUsageFlags usage);
+	static std::optional<VulkanImage> LoadVulkanImage(
+		const VulkanContext& context,
+		const std::string&	 path,
+		vk::ImageUsageFlags	 usage,
+		uint32_t			 rows = 1,
+		uint32_t			 columns = 1);
+
+	static std::optional<std::vector<VulkanImage>> LoadVulkanImages(
+		const VulkanContext& context,
+		const std::string&	 path,
+		vk::ImageUsageFlags	 usage,
+		uint32_t			 rows,
+		uint32_t			 columns);
 
 private:
 	/**
@@ -320,6 +332,8 @@ private:
 		const void*			 pixels,
 		uint32_t			 width,
 		uint32_t			 height,
+		uint32_t			 columns,
+		uint32_t			 rows,
 		uint32_t			 bytes_per_pixel);
 
 private:

@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "Ping/Types.h"
 
+#include "ECS/Components/Animation.h"
 #include "ECS/Components/Light.h"
 #include "ECS/Components/RenderedLine.h"
 #include "ECS/Components/Texture.h"
@@ -36,10 +37,10 @@ struct Vertex
 };
 
 static const std::vector<Vertex> vertices = {
-	{{-0.5f, -0.5f}, {1.0f, 0.0f}},
-	{{0.5f, -0.5f}, {0.0f, 0.0f}},
-	{{0.5f, 0.5f}, {0.0f, 1.0f}},
-	{{-0.5f, 0.5f}, {1.0f, 1.0f}}};
+	{{-0.5f, -0.5f}, {0.0f, 1.0f}},
+	{{0.5f, -0.5f}, {1.0f, 1.0f}},
+	{{0.5f, 0.5f}, {1.0f, 0.0f}},
+	{{-0.5f, 0.5f}, {0.0f, 0.0f}}};
 
 static const std::vector<uint16_t> indices = {0, 1, 2, 2, 3, 0};
 
@@ -73,7 +74,7 @@ struct TextureInstance
 	uint32_t isBillboard = 1;
 	float	 uvScale = 1.0f;
 	uint32_t emitsLight = 0;
-	float	 _pad1 = 0.0f;
+	uint32_t frame = 0;
 };
 
 struct LightInstance
@@ -390,6 +391,15 @@ void Mupfel::Renderer::SyncRenderableObjects(World& world, const Ping::Device& d
 			buffer[buffer_index].emitsLight = 1;
 		}
 
+		if (world.registry.HasComponent<Mupfel::Animation>(e))
+		{
+			buffer[buffer_index].frame = world.registry.GetComponent<Mupfel::Animation>(e).currentFrame;
+		}
+		else
+		{
+			buffer[buffer_index].frame = 0; // static: layer 0
+		}
+
 		buffer_index++;
 	}
 
@@ -486,7 +496,6 @@ void Mupfel::Renderer::DrawLineSpawnerUI(World& world)
 
 	ImGui::End();
 }
-
 
 void Mupfel::Renderer::DrawCameraControlsUI()
 {

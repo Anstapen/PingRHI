@@ -27,22 +27,15 @@ class Renderer;
 typedef uint32_t ImageHandle;
 
 /**
- * This structure can be used to describe how the to-be-loaded image
- * should be interpreted. The default values define a simple image,
- * without any animation.
+ * This structure is used to describe an animated image.
+ * The engine expects animated images in row-major format.
  */
-struct AnimationSpecification
+struct ImageSpecification
 {
-	/** The width of a frame. */
-	uint32_t width;
-	/** The height of a frame. */
-	uint32_t height;
-	/** The number of animations that the image contains. */
-	uint32_t num_animations = 1;
-	/** The number of frames per animation. */
-	uint32_t frames_per_animation = 1;
-
-	std::vector<uint32_t> animation_frames;
+	/** The number of rows in the image. */
+	uint32_t rows;
+	/** The number of columns in the image. */
+	uint32_t columns;
 };
 
 /**
@@ -61,11 +54,19 @@ public:
 	 * \param spec If an animated image should be loaded, this specification is used to interpret the image.
 	 * \return ImageHandle or Error Code.
 	 */
-	[[nodiscard]] Expected<ImageHandle> Load(
+	[[nodiscard]] Expected<ImageHandle> Load(Renderer& renderer, const Ping::Device& device, const std::string path);
+
+	[[nodiscard]] Expected<ImageHandle> LoadAnimated(
 		Renderer&					  renderer,
 		const Ping::Device&			  device,
 		const std::string			  path,
-		const AnimationSpecification& spec = {});
+		const ImageSpecification& spec);
+
+	[[nodiscard]] Expected<std::vector<ImageHandle>> LoadSpriteSheet(
+		Renderer&					  renderer,
+		const Ping::Device&			  device,
+		const std::string			  path,
+		const ImageSpecification& spec);
 
 	void Unload(const std::string path);
 
@@ -88,7 +89,7 @@ private:
 	 * Not used by the engine itself but useful for the user to
 	 * be able to reference images by the path.
 	 */
-	std::unordered_map<std::string, ImageHandle> imageHandleMap;
+	std::unordered_map<std::string, std::vector<ImageHandle>> imageHandleMap;
 };
 
 } // namespace Mupfel

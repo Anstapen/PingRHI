@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <random>
+#include <vector>
 #include <unordered_map>
 
 #include "Core/EventSystem.h"
@@ -67,5 +68,7 @@ private:
 	float lightOrbitAngle = 0.0f;
 
 	std::unordered_map<std::string, ImageHandle> image_map;
+
+	std::vector<ImageHandle> spritesheet;
 };
 } // namespace Mupfel

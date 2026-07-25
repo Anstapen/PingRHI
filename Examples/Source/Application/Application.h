@@ -44,6 +44,8 @@ private:
 	/** Integrates every entity with a `Transform`+`Movement` pair's position by `velocity * delta_time`. */
 	void UpdateMovement(float delta_time);
 
+	void UpdateAnimations(float delta_time);
+
 private:
 	/** Application name passed to the constructor. */
 	const std::string name;

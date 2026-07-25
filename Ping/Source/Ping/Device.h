@@ -74,8 +74,35 @@ public:
 	/** Allocates a GPU buffer of `size` bytes with the given usage and memory properties. */
 	Buffer CreateBuffer(size_t size, BufferUsage usage, MemoryProperty property) const;
 
-	/** Allocates a GPU buffer of `size` bytes with the given usage and memory properties. */
-	std::optional<Image> CreateImage(const std::string& path, Ping::ImageUsage usage) const;
+	/**
+	 * Create a single image with additional (optional) layers.
+	 *
+	 * If \a rows or \a columns is larger than 1, the image is split up into rows x columns sub-images.
+	 * Those sub-images are used as layers for the image.
+	 *
+	 * \param path The image path.
+	 * \param usage The image usage.
+	 * \param rows The amount of rows of subimages that this image contains.
+	 * \param columns The amount of columns of subimages that this image contains.
+	 * \return The image.
+	 */
+	std::optional<Image>
+	CreateImage(const std::string& path, Ping::ImageUsage usage, uint32_t rows = 1, uint32_t columns = 1) const;
+
+	/**
+	 * Create one or more images, based on the given rows and columns.
+	 * 
+	 * If \a rows or \a columns is larger than 1, the image is split up into rows x columns sub-images.
+	 * Each of those sub-images is returned as a Ping::Image.
+	 * 
+	 * \param path The image path.
+	 * \param usage The image usage.
+	 * \param rows The amount of rows of subimages that this image contains.
+	 * \param columns The amount of columns of subimages that this image contains.
+	 * \return The images.
+	 */
+	std::optional<std::vector<Image>>
+	CreateImages(const std::string& path, Ping::ImageUsage usage, uint32_t rows, uint32_t columns) const;
 
 	/** Allocates a GPU buffer of `size` bytes with the given usage and memory properties. */
 	std::optional<Image> CreateDepthBuffer(const SwapChain& swapchain) const;

@@ -10,6 +10,7 @@
 #include "ECS/Components/Movement.h"
 #include "ECS/Components/Texture.h"
 #include "ECS/Components/Transform.h"
+#include "ECS/Components/Animation.h"
 
 #include <random>
 
@@ -63,6 +64,8 @@ void Mupfel::Application::MainLoop()
 		/* Update the entity positions */
 		UpdateMovement(delta_time);
 
+		UpdateAnimations(delta_time);
+
 		/* Circle the light source(s) on the x/y plane */
 		world.UpdateLights(delta_time);
 
@@ -95,5 +98,15 @@ void Mupfel::Application::UpdateMovement(float delta_time)
 			movement.velocity_y *= -1.0f;
 			transform.pos_y = std::clamp(transform.pos_y, min_bound, max_bound);
 		}
+	}
+}
+
+void Mupfel::Application::UpdateAnimations(float delta_time)
+{
+	for (auto [e, animation] : world.registry.view<Animation>())
+	{
+		animation.elapsed += delta_time;
+		uint32_t step = static_cast<uint32_t>(animation.elapsed * animation.fps) % animation.frameCount;
+		animation.currentFrame = animation.firstFrame + step;
 	}
 }

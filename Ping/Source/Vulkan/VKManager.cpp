@@ -5,6 +5,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include <algorithm>
+#include <cassert>
 #include <cstdint>
 #include <fstream>
 
@@ -666,7 +667,8 @@ void Backend::VKManager::transitionImageLayout(
 	VulkanCommandBuffer&   cmd_buffer,
 	const vk::raii::Image& image,
 	vk::ImageLayout		   old_layout,
-	vk::ImageLayout		   new_layout)
+	vk::ImageLayout		   new_layout,
+	uint32_t			   layer_count)
 {
 	vk::PipelineStageFlags2 sourceStage;
 	vk::PipelineStageFlags2 destinationStage;
@@ -681,7 +683,7 @@ void Backend::VKManager::transitionImageLayout(
 			.baseMipLevel = 0,
 			.levelCount = 1,
 			.baseArrayLayer = 0,
-			.layerCount = 1}};
+			.layerCount = layer_count}};
 
 	if (old_layout == vk::ImageLayout::eUndefined && new_layout == vk::ImageLayout::eTransferDstOptimal)
 	{
@@ -1165,8 +1167,12 @@ void Backend::VKManager::CopyBuffer(
 	context.queues[q_index].queue.waitIdle();
 }
 
-std::optional<VulkanImage>
-Backend::VKManager::LoadVulkanImage(const VulkanContext& context, const std::string& path, vk::ImageUsageFlags usage)
+std::optional<VulkanImage> Backend::VKManager::LoadVulkanImage(
+	const VulkanContext& context,
+	const std::string&	 path,
+	vk::ImageUsageFlags	 usage,
+	uint32_t			 rows,
+	uint32_t			 columns)
 {
 	int		 texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -1176,20 +1182,101 @@ Backend::VKManager::LoadVulkanImage(const VulkanContext& context, const std::str
 		return {};
 	}
 
-	VulkanImage image = std::move(
-		VKManager::CreateImage(
-			context, texWidth, texHeight, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eTransferDst | usage, vk::ImageAspectFlagBits::eColor,
-			vk::MemoryPropertyFlagBits::eDeviceLocal, 1, true));
+	if ((texWidth % columns != 0) || (texHeight % rows != 0))
+	{
+		return {};
+	}
+
+	VulkanImage image = VKManager::CreateImage(
+		context, texWidth / columns, texHeight / rows, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eTransferDst | usage, vk::ImageAspectFlagBits::eColor,
+		vk::MemoryPropertyFlagBits::eDeviceLocal, columns * rows, true);
 
 	/* Image has now device-local memory assigned to it, but it does not contain the image data yet */
 
 	VKManager::UploadImageData(
-		context, image, pixels, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 4);
+		context, image, pixels, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), columns, rows, 4);
 
 	stbi_image_free(pixels);
 
 	return image;
+}
+
+std::optional<std::vector<VulkanImage>> Backend::VKManager::LoadVulkanImages(
+	const VulkanContext& context,
+	const std::string&	 path,
+	vk::ImageUsageFlags	 usage,
+	uint32_t			 rows,
+	uint32_t			 columns)
+{
+	int		 texWidth, texHeight, texChannels;
+	stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+	if (!pixels)
+	{
+		return {};
+	}
+
+	if ((texWidth % columns != 0) || (texHeight % rows != 0))
+	{
+		return {};
+	}
+
+	std::vector<std::vector<uint8_t>> subImages;
+	uint8_t*						  pixel_ptr = pixels;
+	uint32_t						  subImageWidth = texWidth / columns;
+	uint32_t						  subImageHeight = texHeight / rows;
+	uint32_t						  subImageIndex = 0;
+
+	/* copy the image data into ub buffers. */
+	for (uint32_t row = 0; row < rows; row++)
+	{
+		for (uint32_t column = 0; column < columns; column++)
+		{
+			uint64_t			 starting_offset = (static_cast<uint64_t>(row) * subImageHeight * texWidth +
+													static_cast<uint64_t>(column) * subImageWidth) *
+												   4;
+			std::vector<uint8_t> subImage;
+
+			for (uint32_t i = 0; i < subImageHeight; i++)
+			{
+				for (uint32_t k = 0; k < subImageWidth; k++)
+				{
+					uint64_t offset = starting_offset + (static_cast<uint64_t>(i) * texWidth + k) * 4;
+					for (uint32_t l = 0; l < 4; l++)
+					{
+
+						subImage.push_back(pixel_ptr[offset + l]);
+					}
+				}
+			}
+
+			subImages.push_back(subImage);
+		}
+	}
+
+	stbi_image_free(pixels);
+
+	uint32_t numImages = rows * columns;
+
+	std::vector<VulkanImage> images;
+	images.reserve(numImages);
+
+	for (uint32_t i = 0; i < numImages; i++)
+	{
+		auto& image = images.emplace_back(
+			VKManager::CreateImage(
+				context, texWidth / columns, texHeight / rows, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
+				vk::ImageUsageFlagBits::eTransferDst | usage, vk::ImageAspectFlagBits::eColor,
+				vk::MemoryPropertyFlagBits::eDeviceLocal, 1, true));
+
+		/* Image has now device-local memory assigned to it, but it does not contain the image data yet */
+		VKManager::UploadImageData(
+			context, image, subImages[i].data(), static_cast<uint32_t>(subImageWidth),
+			static_cast<uint32_t>(subImageHeight), 1, 1, 4);
+	}
+
+	return images;
 }
 
 void Backend::VKManager::UploadImageData(
@@ -1198,10 +1285,27 @@ void Backend::VKManager::UploadImageData(
 	const void*			 pixels,
 	uint32_t			 width,
 	uint32_t			 height,
+	uint32_t			 columns,
+	uint32_t			 rows,
 	uint32_t			 bytes_per_pixel)
 {
+	/* All this stuff should have been checked by the caller! */
+	assert(columns > 0);
+	assert(rows > 0);
+	assert(bytes_per_pixel > 0);
+
+	const uint32_t frame_width = width / columns;
+	const uint32_t frame_height = height / rows;
+
+	/* The frames need to be tightly packed. */
+	assert(width == (frame_width * columns));
+	assert(height == (frame_height * rows));
+
+	//////////////////////////////////////////
 	vk::DeviceSize imageSize =
 		static_cast<vk::DeviceSize>(width) * static_cast<vk::DeviceSize>(height) * bytes_per_pixel;
+
+	auto layerCount = static_cast<size_t>(columns * rows);
 
 	VulkanBuffer staging_buffer = VKManager::CreateBuffer(
 		context, imageSize, vk::BufferUsageFlagBits::eTransferSrc,
@@ -1216,25 +1320,56 @@ void Backend::VKManager::UploadImageData(
 		throw std::runtime_error("Unable to create Command buffer from transfer queue");
 	}
 
+	/* Create one BufferImageCopy struct per frame. */
+	std::vector<vk::BufferImageCopy> frames;
+
+	/* early reserve to prevent multiple resizing operations. */
+	frames.reserve(layerCount);
+
+	/* Row-major iteration. */
+	for (uint32_t row = 0; row < rows; row++)
+	{
+		for (uint32_t column = 0; column < columns; column++)
+		{
+			const uint32_t frame = row * columns + column;
+
+			/*
+			 * We need to calculate the buffer offset into the byte stream.
+			 * The buffer is laid out as row major, but on a pixel level.
+			 * That means each "frame row" contains frame_height times image width pixels.
+			 */
+			vk::DeviceSize offset = static_cast<uint64_t>(row * frame_height * width) +
+									static_cast<uint64_t>(frame_width * column) * bytes_per_pixel;
+
+			frames.push_back(
+				vk::BufferImageCopy{
+					.bufferOffset = offset,
+					.bufferRowLength = width,
+					.bufferImageHeight = 0,
+					.imageSubresource =
+						{.aspectMask = vk::ImageAspectFlagBits::eColor,
+						 .mipLevel = 0,
+						 .baseArrayLayer = frame,
+						 .layerCount = 1},
+					.imageOffset = {0, 0, 0},
+					.imageExtent = {frame_width, frame_height, 1}});
+		}
+	}
+
+	assert(frames.size() == layerCount);
+
 	copy_cmd_buffer[0].Begin(context.device, vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
 
 	/* We need to transition the image layout before we copy */
 	VKManager::transitionImageLayout(
-		copy_cmd_buffer[0], image.image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+		copy_cmd_buffer[0], image.image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, layerCount);
 
-	vk::BufferImageCopy region{
-		.bufferOffset = 0,
-		.bufferRowLength = 0,
-		.bufferImageHeight = 0,
-		.imageSubresource =
-			{.aspectMask = vk::ImageAspectFlagBits::eColor, .mipLevel = 0, .baseArrayLayer = 0, .layerCount = 1},
-		.imageOffset = {0, 0, 0},
-		.imageExtent = {width, height, 1}};
 	copy_cmd_buffer[0].commandBuffer.copyBufferToImage(
-		staging_buffer.buffer, image.image, vk::ImageLayout::eTransferDstOptimal, region);
+		staging_buffer.buffer, image.image, vk::ImageLayout::eTransferDstOptimal, frames);
 
 	VKManager::transitionImageLayout(
-		copy_cmd_buffer[0], image.image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+		copy_cmd_buffer[0], image.image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+		layerCount);
 
 	copy_cmd_buffer[0].End();
 
@@ -1410,7 +1545,7 @@ VulkanGui Backend::VKManager::CreateGui(
 		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
 		vk::ImageAspectFlagBits::eColor, vk::MemoryPropertyFlagBits::eDeviceLocal);
 	VKManager::UploadImageData(
-		context, fontImage, fontPixels, static_cast<uint32_t>(fontWidth), static_cast<uint32_t>(fontHeight), 4);
+		context, fontImage, fontPixels, static_cast<uint32_t>(fontWidth), static_cast<uint32_t>(fontHeight), 1, 1, 4);
 
 	VulkanSampler fontSampler = VKManager::CreateSampler(
 		context, {.filterMode = Ping::SamplerFilterMode::Linear,

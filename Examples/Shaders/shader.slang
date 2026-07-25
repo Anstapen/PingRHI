@@ -22,7 +22,7 @@ struct TextureInstance {
     uint   isBillboard;
     float  uvScale;
     uint   emitsLight;
-    float  pad0;
+    uint   frame;
 };
 [[vk::binding(0, 2)]]
 StructuredBuffer<TextureInstance> texture_instances;
@@ -32,7 +32,8 @@ struct VSOutput
     float4 pos : SV_Position;
     float2 fragTexCoord;
     nointerpolation uint textureIndex : TEXCOORD1;
-    uint emitsLight;
+    nointerpolation uint frameIndex;
+    nointerpolation uint emitsLight;
     float3 worldPos;
     float3 worldNormal;
 };
@@ -62,7 +63,7 @@ VSOutput vertMain(VSInput input) {
         worldPos = t.pos + halfWidth * right + height * up;
         output.worldPos = worldPos;
         output.worldNormal = normalize(cross(right, up));
-        uv       = float2(input.inTexCoord.x, 1.0 - input.inTexCoord.y);
+        uv       = input.inTexCoord;
     }
     else
     {
@@ -77,6 +78,7 @@ VSOutput vertMain(VSInput input) {
     output.fragTexCoord = uv;
     output.textureIndex = t.textureIndex;
     output.emitsLight = t.emitsLight;
+    output.frameIndex = t.frame;
     return output;
 }
 
@@ -104,20 +106,21 @@ ConstantBuffer<LightParams> light_params;
 
 [shader("fragment")]
 float4 fragMain(VSOutput vertIn) : SV_TARGET {
+
+    float4 tex_color = textures[NonUniformResourceIndex(vertIn.textureIndex)].Sample(float3(vertIn.fragTexCoord, vertIn.frameIndex));
+
+    if(tex_color.w < 0.1f)
+    {
+        discard;
+    }
    
-    if(vertIn.emitsLight != 0)
+    if(vertIn.emitsLight == 0)
     {
-        // the fragment is part of a geometry that emits light, skip light calculations
-        return textures[NonUniformResourceIndex(vertIn.textureIndex)].Sample(float3(vertIn.fragTexCoord, 0));
-    } else
-    {
-        float4 tex_color = textures[NonUniformResourceIndex(vertIn.textureIndex)].Sample(float3(vertIn.fragTexCoord, 0));
         var ambient = float3(0.0f);
         var diffuse = float3(0.0f);
         var specular = float3(0.0f);
         for(uint i = 0; i < light_params.numLights; i++)
         {
-            //float3 ambient = light_instances[i].color;
             ambient  += light_instances[i].color * light_instances[i].ambientLight;
 
             float3 lightDir = normalize(light_instances[i].pos - vertIn.worldPos);
@@ -132,11 +135,8 @@ float4 fragMain(VSOutput vertIn) : SV_TARGET {
 
         tex_color.xyz = (ambient + diffuse + specular) * tex_color.xyz;
 
-
-        
-        //return float4(rgb_color, tex_color.w);
         return float4(tex_color.rgb, tex_color.a);
     }
 
-   //return textures[nonuniform(textures[vertIn.textureIndex])].Sample(vertIn.fragTexCoord);
+    return tex_color;
 }

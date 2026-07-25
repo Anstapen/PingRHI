@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "ECS/Components/Animation.h"
 #include "ECS/Components/Light.h"
 #include "ECS/Components/Movement.h"
 #include "ECS/Components/Texture.h"
@@ -27,7 +28,6 @@ void Mupfel::World::SpawnRandomEntities(uint32_t count, float min_pos, float max
 		t.scale_x = 0.5f;
 		t.scale_y = 0.5f;
 		registry.AddComponent<Transform>(e, t);
-		
 
 		Movement m;
 		m.velocity_x = velocity_dist(rng);
@@ -39,6 +39,17 @@ void Mupfel::World::SpawnRandomEntities(uint32_t count, float min_pos, float max
 void Mupfel::World::SpawnScene(Renderer& renderer, Ping::Device& device, ImageManager& manager)
 {
 	LoadImages(renderer, device, manager);
+
+	std::vector <std::pair<uint32_t, uint32_t>> animations;
+
+	animations.push_back({0, 6});
+	animations.push_back({9, 8});
+	animations.push_back({18, 6});
+	animations.push_back({27, 6});
+	animations.push_back({36, 9});
+	animations.push_back({45, 4});
+	animations.push_back({54, 4});
+
 	// Ground: one large flat quad in the x/y plane, grass tiled ~1 texture per world unit.
 	{
 		Entity	  e = registry.CreateEntity();
@@ -57,19 +68,51 @@ void Mupfel::World::SpawnScene(Renderer& renderer, Ping::Device& device, ImageMa
 		}
 	}
 
+	{
+		float pos_x = 0.0f;
+		float pos_y = 0.0f;
+		for (auto handle : spritesheet)
+		{
+			Entity	  e = registry.CreateEntity();
+			Transform g;
+			g.scale_x = 1.0f;
+			g.scale_y = 1.0f;
+			g.billboard = false;
+			g.uvScale = 1.0f;
+			g.pos_x = pos_x;
+			g.pos_y = pos_y;
+			g.pos_z = 0.5f;
+			registry.AddComponent<Transform>(e, g);
+
+			Texture tex;
+			tex.index = handle;
+			registry.AddComponent<Texture>(e, tex);
+
+			pos_x += 1.0f;
+			pos_y += 1.0f;
+		}
+	}
+
 	// Player: an upright billboard at the origin; the camera follows this entity.
 	{
 		Entity	  e = registry.CreateEntity();
 		Transform p;
-		p.scale_x = 1.5f;
-		p.scale_y = 2.0f;
+		p.scale_x = 5.0f;
+		p.scale_y = 5.0f;
 		registry.AddComponent<Transform>(e, p);
-		if (image_map.contains("DefaultBall"))
+		if (image_map.contains("Soldier"))
 		{
 			Texture tex;
-			tex.index = image_map["DefaultBall"];
+			tex.index = image_map["Soldier"];
 			registry.AddComponent<Texture>(e, tex);
 		}
+
+		Animation anim;
+		anim.firstFrame = 0;
+		anim.frameCount = 6;
+		anim.fps = 6.0f;
+		registry.AddComponent<Animation>(e, anim);
+
 		player = e;
 	}
 
@@ -127,12 +170,22 @@ void Mupfel::World::LoadImages(Renderer& renderer, Ping::Device& device, ImageMa
 	auto result = manager.Load(renderer, device, "Images/grass_1.png")
 					  .transform([this](ImageHandle handle) { this->image_map["DefaultGrass"] = handle; });
 
-	 result = manager.Load(renderer, device, "Images/ball_blue.png")
-					  .transform([this](ImageHandle handle) { this->image_map["BlueBall"] = handle; });
-	 result = manager.Load(renderer, device, "Images/ball_green.png")
-					  .transform([this](ImageHandle handle) { this->image_map["GreenBall"] = handle; });
-	 result = manager.Load(renderer, device, "Images/ball_default.png")
-					  .transform([this](ImageHandle handle) { this->image_map["DefaultBall"] = handle; });
-	 result = manager.Load(renderer, device, "Images/ball_red.png")
-					  .transform([this](ImageHandle handle) { this->image_map["RedBall"] = handle; });
+	result = manager.Load(renderer, device, "Images/ball_blue.png")
+				 .transform([this](ImageHandle handle) { this->image_map["BlueBall"] = handle; });
+	result = manager.Load(renderer, device, "Images/ball_green.png")
+				 .transform([this](ImageHandle handle) { this->image_map["GreenBall"] = handle; });
+	result = manager.Load(renderer, device, "Images/ball_default.png")
+				 .transform([this](ImageHandle handle) { this->image_map["DefaultBall"] = handle; });
+	result = manager.Load(renderer, device, "Images/ball_red.png")
+				 .transform([this](ImageHandle handle) { this->image_map["RedBall"] = handle; });
+
+	result = manager.LoadAnimated(renderer, device, "Images/Soldier.png", {.rows = 7, .columns = 9})
+				 .transform([this](ImageHandle handle) { this->image_map["Soldier"] = handle; });
+
+	auto handles = manager.LoadSpriteSheet(renderer, device, "Images/magecity.png", {.rows = 44, .columns = 8});
+
+	if (handles.has_value())
+	{
+		spritesheet = handles.value();
+	}
 }
