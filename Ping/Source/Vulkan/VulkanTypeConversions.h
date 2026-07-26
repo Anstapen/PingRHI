@@ -49,4 +49,8 @@ vk::Filter ToVulkan(Ping::SamplerFilterMode filter);
 vk::SamplerMipmapMode ToVulkan(Ping::SamplerMipMapMode mipmap_mode);
 
 vk::SamplerAddressMode ToVulkan(Ping::SamplerAddressMode address_mode);
+
+vk::CullModeFlags ToVulkan(Ping::CullMode cull_mode);
+
+vk::BlendFactor ToVulkan(Ping::BlendFactor blend_factor);
 } // namespace Backend

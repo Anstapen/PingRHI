@@ -179,3 +179,36 @@ vk::SamplerAddressMode Backend::ToVulkan(Ping::SamplerAddressMode address_mode)
 	}
 	throw std::runtime_error("Unhandled Ping::SamplerAddressMode");
 }
+
+
+vk::CullModeFlags Backend::ToVulkan(Ping::CullMode cull_mode)
+{
+	vk::CullModeFlags result{};
+	if (Ping::HasFlag(cull_mode, Ping::CullMode::Front))
+		result |= vk::CullModeFlagBits::eFront;
+	if (Ping::HasFlag(cull_mode, Ping::CullMode::Back))
+		result |= vk::CullModeFlagBits::eBack;
+	if (Ping::HasFlag(cull_mode, Ping::CullMode::FrontAndBack))
+		result |= vk::CullModeFlagBits::eFrontAndBack;
+	return result;
+}
+
+vk::BlendFactor Backend::ToVulkan(Ping::BlendFactor blend_factor)
+{
+	switch (blend_factor)
+	{
+	case Ping::BlendFactor::Zero:
+		return vk::BlendFactor::eZero;
+	case Ping::BlendFactor::One:
+		return vk::BlendFactor::eOne;
+	case Ping::BlendFactor::SrcAlpha:
+		return vk::BlendFactor::eSrcAlpha;
+	case Ping::BlendFactor::OneMinusSrcAlpha:
+		return vk::BlendFactor::eOneMinusSrcAlpha;
+	case Ping::BlendFactor::DstAlpha:
+		return vk::BlendFactor::eDstAlpha;
+	case Ping::BlendFactor::OneMinusDstAlpha:
+		return vk::BlendFactor::eOneMinusDstAlpha;
+	}
+	throw std::runtime_error("Unhandled Ping::BlendFactor");
+}

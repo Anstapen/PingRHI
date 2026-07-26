@@ -353,4 +353,32 @@ struct SamplerSpecification
 	bool			   anisotropyEnable;
 };
 
+enum class CullMode : uint32_t
+{
+	None = 0,
+	Front = 1 << 0,
+	Back = 1 << 1,
+	FrontAndBack = 1 << 2
+};
+
+constexpr CullMode operator|(CullMode lhs, CullMode rhs)
+{
+	return static_cast<CullMode>(static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs));
+}
+
+constexpr bool HasFlag(CullMode value, CullMode flag)
+{
+	return (static_cast<uint32_t>(value) & static_cast<uint32_t>(flag)) != 0;
+}
+
+enum class BlendFactor
+{
+	Zero,
+	One,
+	SrcAlpha,
+	OneMinusSrcAlpha,
+	DstAlpha,
+	OneMinusDstAlpha
+};
+
 } // namespace Ping

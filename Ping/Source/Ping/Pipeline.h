@@ -20,6 +20,9 @@ struct PipelineSpecification
 	VertexBinding vertexLayout;
 	/** Descriptor bindings the shader expects; empty if the pipeline uses no descriptor sets. */
 	std::vector<DescriptorBinding> descriptorBindings;
+	CullMode					   cullMode;
+	BlendFactor					   dstAlphaBlend;
+	bool						   depthTestingWanted;
 };
 
 class CommandBuffer;

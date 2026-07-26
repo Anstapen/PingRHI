@@ -201,7 +201,7 @@ VulkanPipeline Backend::VKManager::CreatePipeline(
 		.depthClampEnable = vk::False,
 		.rasterizerDiscardEnable = vk::False,
 		.polygonMode = vk::PolygonMode::eFill,
-		.cullMode = vk::CullModeFlagBits::eBack,
+		.cullMode = ToVulkan(specification.cullMode),
 		.frontFace = vk::FrontFace::eCounterClockwise,
 		.depthBiasEnable = vk::False,
 		.lineWidth = 1.0f};
@@ -216,7 +216,7 @@ VulkanPipeline Backend::VKManager::CreatePipeline(
 		.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
 		.colorBlendOp = vk::BlendOp::eAdd,
 		.srcAlphaBlendFactor = vk::BlendFactor::eOne,
-		.dstAlphaBlendFactor = vk::BlendFactor::eZero,
+		.dstAlphaBlendFactor = ToVulkan(specification.dstAlphaBlend),
 		.alphaBlendOp = vk::BlendOp::eAdd,
 		.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
 						  vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA};
@@ -228,11 +228,17 @@ VulkanPipeline Backend::VKManager::CreatePipeline(
 		.pAttachments = &colorBlendAttachment};
 
 	vk::PipelineDepthStencilStateCreateInfo depthStencil{
-		.depthTestEnable = vk::True,
-		.depthWriteEnable = vk::True,
-		.depthCompareOp = vk::CompareOp::eLess,
+		.depthTestEnable = vk::False,
+		.depthWriteEnable = vk::False,
 		.depthBoundsTestEnable = vk::False,
 		.stencilTestEnable = vk::False};
+
+	if (specification.depthTestingWanted)
+	{
+		depthStencil.depthTestEnable = vk::True;
+		depthStencil.depthWriteEnable = vk::True;
+		depthStencil.depthCompareOp = vk::CompareOp::eLess;
+	}
 
 	std::vector<vk::raii::DescriptorSetLayout> descriptorSetLayouts =
 		CreateDescriptorSetLayouts(context, specification.descriptorBindings);
@@ -924,7 +930,7 @@ vk::raii::DebugUtilsMessengerEXT
 VKManager::SetupDebugCallback(vk::raii::Instance& instance, vk::PFN_DebugUtilsMessengerCallbackEXT user_callback)
 {
 #ifdef NDEBUG
-	return vk::raii::DebugMessenger(nullptr);
+	return vk::raii::DebugUtilsMessengerEXT(nullptr);
 #else
 
 	vk::DebugUtilsMessengerCreateInfoEXT messenger_create_info;
