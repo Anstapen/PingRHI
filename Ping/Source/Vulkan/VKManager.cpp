@@ -143,9 +143,8 @@ std::vector<vk::raii::DescriptorSetLayout> Backend::VKManager::CreateDescriptorS
 	return layouts;
 }
 
-VulkanPipeline Backend::VKManager::CreatePipeline(
-	const VulkanContext&			   context,
-	const Ping::PipelineSpecification& specification)
+VulkanPipeline
+Backend::VKManager::CreatePipeline(const VulkanContext& context, const Ping::PipelineSpecification& specification)
 {
 	logger->info("Creating pipeline with shader file: {}", specification.shaderFilePath);
 	std::vector<char>		   shaderCode = readFile(specification.shaderFilePath);
@@ -1428,10 +1427,10 @@ VulkanSampler Backend::VKManager::CreateSampler(const VulkanContext& context, Pi
 }
 
 VulkanGui Backend::VKManager::CreateGui(
-	const VulkanContext&   context,
-	GLFWwindow*			   window,
-	const VulkanSwapChain& swapchain,
-	uint32_t			   frames_in_flight)
+	const VulkanContext& context,
+	GLFWwindow*			 window,
+	Ping::Format		 format,
+	uint32_t			 frames_in_flight)
 {
 	ImGuiContext* imgui_context = ImGui::CreateContext();
 	ImGui::SetCurrentContext(imgui_context);
@@ -1532,6 +1531,8 @@ VulkanGui Backend::VKManager::CreateGui(
 	vk::PipelineColorBlendStateCreateInfo colorBlending{
 		.logicOpEnable = vk::False, .attachmentCount = 1, .pAttachments = &colorBlendAttachment};
 
+	vk::Format native_format = ToVulkan(format);
+
 	vk::StructureChain<vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo> pipelineCreateInfoChain = {
 		{.stageCount = 2,
 		 .pStages = shaderStages,
@@ -1546,7 +1547,7 @@ VulkanGui Backend::VKManager::CreateGui(
 		 .layout = pipelineLayout,
 		 .renderPass = nullptr},
 		{.colorAttachmentCount = 1,
-		 .pColorAttachmentFormats = &swapchain.swapChainSurfaceFormat.format,
+		 .pColorAttachmentFormats = &native_format,
 		 .depthAttachmentFormat = vk::Format::eD32Sfloat}};
 
 	vk::raii::Pipeline pipeline(context.device, nullptr, pipelineCreateInfoChain.get<vk::GraphicsPipelineCreateInfo>());

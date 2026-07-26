@@ -241,10 +241,10 @@ DescriptorSets Ping::Device::CreateStorageDescriptorSets(
 	return DescriptorSets(std::move(pool));
 }
 
-Gui Ping::Device::CreateGui(GLFWwindow* window, const SwapChain& swapchain, uint32_t frames_in_flight) const
+Gui Ping::Device::CreateGui(GLFWwindow* window, Ping::Format format, uint32_t frames_in_flight) const
 {
 	Backend::VulkanGui vulkanGui = Backend::VKManager::CreateGui(
-		*vulkanContextPtr, window, *swapchain.vulkanSwapChainPtr, frames_in_flight);
+		*vulkanContextPtr, window, format, frames_in_flight);
 	return Gui(std::move(vulkanGui));
 }
 

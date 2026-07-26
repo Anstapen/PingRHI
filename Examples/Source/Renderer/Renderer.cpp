@@ -198,7 +198,7 @@ void Mupfel::Renderer::Init(const Ping::Device& device, const Window& window)
 
 	lightParamDescriptorSets = device.CreateDescriptorSets(pipeline.value(), lightParamSetIndex, lightParamBuffers);
 
-	gui = device.CreateGui(window.GetGLFWHandle(), swapchain.value(), frames_in_flight);
+	gui = device.CreateGui(window.GetGLFWHandle(), swapchain.value().GetFormat(), frames_in_flight);
 
 	/* Try to open a default image */
 	std::optional<Ping::Image> default_image = device.CreateImage(defaul_image_path, Ping::ImageUsage::Sampled);

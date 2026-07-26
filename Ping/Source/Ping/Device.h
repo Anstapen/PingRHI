@@ -134,7 +134,7 @@ public:
 		uint32_t				   set_index,
 		const std::vector<Buffer>& storage_buffers) const;
 
-	Gui CreateGui(GLFWwindow* window, const SwapChain& swapchain, uint32_t frames_in_flight) const;
+	Gui CreateGui(GLFWwindow* window, Ping::Format format, uint32_t frames_in_flight) const;
 
 	/** Blocks until the device has completed all previously submitted work. */
 	void WaitForCommands() const;

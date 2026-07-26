@@ -75,9 +75,8 @@ public:
 	 * viewport/scissor, loading `specification.shaderFilePath` as a SPIR-V module with `vertMain`/`fragMain`
 	 * entry points and alpha blending enabled.
 	 */
-	static VulkanPipeline CreatePipeline(
-		const VulkanContext&			   context,
-		const Ping::PipelineSpecification& specification);
+	static VulkanPipeline
+	CreatePipeline(const VulkanContext& context, const Ping::PipelineSpecification& specification);
 
 	/**
 	 * Allocates `num_buffers` primary command buffers from `context`'s pool matching `type`, each
@@ -148,11 +147,8 @@ public:
 	 */
 	static VulkanSampler CreateSampler(const VulkanContext& context, Ping::SamplerSpecification sampler_spec);
 
-	static VulkanGui CreateGui(
-		const VulkanContext&   context,
-		GLFWwindow*			   window,
-		const VulkanSwapChain& swapchain,
-		uint32_t			   frames_in_flight);
+	static VulkanGui
+	CreateGui(const VulkanContext& context, GLFWwindow* window, Ping::Format format, uint32_t frames_in_flight);
 
 	static void RenderGui(
 		const VulkanContext&	   context,
