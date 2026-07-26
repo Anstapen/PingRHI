@@ -63,7 +63,7 @@ SwapChain Ping::Device::CreateSwapChain(GLFWwindow* window, uint32_t frames_in_f
 Pipeline Ping::Device::CreatePipeline(const PipelineSpecification& specification, const SwapChain& swapchain) const
 {
 	Backend::VulkanPipeline vulkanPipeline =
-		Backend::VKManager::CreatePipeline(*vulkanContextPtr, specification, *swapchain.vulkanSwapChainPtr);
+		Backend::VKManager::CreatePipeline(*vulkanContextPtr, specification, swapchain.vulkanSwapChainPtr->swapChainSurfaceFormat);
 	return Pipeline(std::move(vulkanPipeline));
 }
 

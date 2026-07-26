@@ -146,7 +146,7 @@ std::vector<vk::raii::DescriptorSetLayout> Backend::VKManager::CreateDescriptorS
 VulkanPipeline Backend::VKManager::CreatePipeline(
 	const VulkanContext&			   context,
 	const Ping::PipelineSpecification& specification,
-	const VulkanSwapChain&			   swapchain)
+	vk::SurfaceFormatKHR			   surfaceFormat)
 {
 	logger->info("Creating pipeline with shader file: {}", specification.shaderFilePath);
 	std::vector<char>		   shaderCode = readFile(specification.shaderFilePath);
@@ -187,14 +187,7 @@ VulkanPipeline Backend::VKManager::CreatePipeline(
 		.pVertexAttributeDescriptions = attributeDescriptions.data()};
 
 	vk::PipelineInputAssemblyStateCreateInfo inputAssembly{.topology = vk::PrimitiveTopology::eTriangleList};
-	vk::Viewport							 viewport{0.0f,
-													  0.0f,
-													  static_cast<float>(swapchain.swapChainExtent.width),
-													  static_cast<float>(swapchain.swapChainExtent.height),
-													  0.0f,
-													  1.0f};
 	vk::PipelineViewportStateCreateInfo		 viewportState{.viewportCount = 1, .scissorCount = 1};
-	vk::Rect2D								 scissor{vk::Offset2D{0, 0}, swapchain.swapChainExtent};
 
 	/* Rasterizer */
 	vk::PipelineRasterizationStateCreateInfo rasterizer{
@@ -271,7 +264,7 @@ VulkanPipeline Backend::VKManager::CreatePipeline(
 		 .layout = pipelineLayout,
 		 .renderPass = nullptr},
 		{.colorAttachmentCount = 1,
-		 .pColorAttachmentFormats = &swapchain.swapChainSurfaceFormat.format,
+		 .pColorAttachmentFormats = &surfaceFormat.format,
 		 .depthAttachmentFormat = vk::Format::eD32Sfloat}};
 
 	auto graphicsPipeline =

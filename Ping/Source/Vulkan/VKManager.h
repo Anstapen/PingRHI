@@ -78,7 +78,7 @@ public:
 	static VulkanPipeline CreatePipeline(
 		const VulkanContext&			   context,
 		const Ping::PipelineSpecification& specification,
-		const VulkanSwapChain&			   swapchain);
+		vk::SurfaceFormatKHR			   surfaceFormat);
 
 	/**
 	 * Allocates `num_buffers` primary command buffers from `context`'s pool matching `type`, each
