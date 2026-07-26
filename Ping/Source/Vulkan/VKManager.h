@@ -77,8 +77,7 @@ public:
 	 */
 	static VulkanPipeline CreatePipeline(
 		const VulkanContext&			   context,
-		const Ping::PipelineSpecification& specification,
-		vk::SurfaceFormatKHR			   surfaceFormat);
+		const Ping::PipelineSpecification& specification);
 
 	/**
 	 * Allocates `num_buffers` primary command buffers from `context`'s pool matching `type`, each
@@ -289,7 +288,15 @@ private:
 		const std::vector<const char*>&		wanted_device_extensions,
 		vk::raii::SurfaceKHR&				surface);
 
-	/** Prefers `eB8G8R8A8Srgb`/`eSrgbNonlinear` from `availableFormats`, falling back to the first available format. */
+	/**
+	 * Prefers `eB8G8R8A8Srgb`/`eSrgbNonlinear` from `availableFormats`, falling back to the first entry
+	 * that has a `Ping::Format` equivalent.
+	 *
+	 * @note The fallback is restricted to mappable formats on purpose: the selected format is handed
+	 * back out through the `Ping` API (and ends up as a pipeline's colour attachment format), so a
+	 * format `Backend::TryToPing` cannot name is unusable no matter what the driver reports.
+	 * @throws std::runtime_error if no entry in `availableFormats` maps to a `Ping::Format`.
+	 */
 	static vk::SurfaceFormatKHR SelectSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
 
 	/** Prefers `eMailbox` from `availablePresentModes`, falling back to `eFifo` (which must always be available). */

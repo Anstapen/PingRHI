@@ -61,7 +61,7 @@ public:
 	SwapChain CreateSwapChain(GLFWwindow* window, uint32_t frames_in_flight) const;
 
 	/** Builds a graphics pipeline per `specification`, targeting `swapchain`'s image format. */
-	Pipeline CreatePipeline(const PipelineSpecification& specification, const SwapChain& swapchain) const;
+	Pipeline CreatePipeline(const PipelineSpecification& specification) const;
 
 	/**
 	 * Allocates `num_buffers` command buffers from the given queue family.

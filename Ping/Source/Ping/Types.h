@@ -6,6 +6,83 @@ namespace Ping
 {
 
 /**
+ * Backend-agnostic mirror of `vk::Format`, covering the image, attachment and swapchain formats
+ * this RHI exposes.
+ *
+ * This is deliberately a curated subset, not a full mirror: `vk::Format` has several hundred
+ * enumerants once extensions are counted, the vast majority of which (video, YCbCr planar, ASTC
+ * HDR, ...) this RHI has no way to produce or consume. What is covered is the set a surface can
+ * realistically report, plus the common colour-attachment, depth/stencil and sampled-image formats.
+ *
+ * @note `Backend::ToVulkan(Format)` is total by construction. The reverse direction,
+ * `Backend::ToPing(vk::Format)`, throws for any format outside this subset rather than degrading to
+ * `Undefined` — see the warning on that function.
+ */
+enum class Format
+{
+	/** No format. Only valid as an "unset" placeholder; never valid as an attachment format. */
+	Undefined,
+
+	/** One 8-bit unsigned normalized channel. */
+	R8Unorm,
+	/** Two 8-bit unsigned normalized channels. */
+	R8G8Unorm,
+	/** Four 8-bit unsigned normalized channels in RGBA order. */
+	R8G8B8A8Unorm,
+	/** Four 8-bit channels in RGBA order, RGB sRGB-encoded, alpha linear. */
+	R8G8B8A8Srgb,
+	/** Four 8-bit unsigned normalized channels in BGRA order. */
+	B8G8R8A8Unorm,
+	/** Four 8-bit channels in BGRA order, RGB sRGB-encoded; the format `SelectSurfaceFormat` prefers. */
+	B8G8R8A8Srgb,
+
+	/** 2-bit alpha in bits 30..31, then 10-bit B, G, R downwards; the usual HDR10 surface format. */
+	A2B10G10R10UnormPack32,
+	/** 2-bit alpha in bits 30..31, then 10-bit R, G, B downwards. */
+	A2R10G10B10UnormPack32,
+
+	/** One 16-bit unsigned normalized channel. */
+	R16Unorm,
+	/** Two 16-bit unsigned normalized channels. */
+	R16G16Unorm,
+	/** Four 16-bit unsigned normalized channels in RGBA order. */
+	R16G16B16A16Unorm,
+
+	/** One 16-bit float channel. */
+	R16Sfloat,
+	/** Two 16-bit float channels. */
+	R16G16Sfloat,
+	/** Four 16-bit float channels in RGBA order; the usual HDR render target and scRGB surface format. */
+	R16G16B16A16Sfloat,
+	/** One 32-bit float channel. */
+	R32Sfloat,
+	/** Two 32-bit float channels. */
+	R32G32Sfloat,
+	/** Four 32-bit float channels in RGBA order. */
+	R32G32B32A32Sfloat,
+	/** Unsigned 11/11/10-bit floats packed into 32 bits; a compact HDR colour target with no alpha. */
+	B10G11R11UfloatPack32,
+
+	/** One 8-bit unsigned integer channel. */
+	R8Uint,
+	/** One 16-bit unsigned integer channel. */
+	R16Uint,
+	/** One 32-bit unsigned integer channel. */
+	R32Uint,
+
+	/** 16-bit unsigned normalized depth, no stencil. */
+	D16Unorm,
+	/** 32-bit float depth, no stencil; the depth format this RHI currently defaults to. */
+	D32Sfloat,
+	/** 8-bit unsigned integer stencil, no depth. */
+	S8Uint,
+	/** 24-bit unsigned normalized depth plus 8-bit stencil. */
+	D24UnormS8Uint,
+	/** 32-bit float depth plus 8-bit stencil. */
+	D32SfloatS8Uint
+};
+
+/**
  * Backend-agnostic mirror of `vk::ImageLayout`, restricted to the layouts this RHI currently uses
  * for swapchain image transitions.
  *

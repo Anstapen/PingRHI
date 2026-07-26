@@ -23,6 +23,7 @@ struct PipelineSpecification
 	CullMode					   cullMode;
 	BlendFactor					   dstAlphaBlend;
 	bool						   depthTestingWanted;
+	Format						   imageFormat;
 };
 
 class CommandBuffer;

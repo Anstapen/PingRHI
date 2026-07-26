@@ -2,6 +2,7 @@
 #include "Device.h"
 #include "Vulkan/VKManager.h"
 #include "Vulkan/VulkanSwapChain.h"
+#include "Vulkan/VulkanTypeConversions.h"
 
 using namespace Ping;
 
@@ -46,3 +47,5 @@ std::pair<uint32_t, uint32_t> Ping::SwapChain::GetExtent() const
 	return std::pair<uint32_t, uint32_t>(
 		vulkanSwapChainPtr->swapChainExtent.width, vulkanSwapChainPtr->swapChainExtent.height);
 }
+
+Format Ping::SwapChain::GetFormat() const { return Backend::ToPing(vulkanSwapChainPtr->swapChainSurfaceFormat.format); }

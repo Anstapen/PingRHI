@@ -106,6 +106,153 @@ vk::Format Backend::ToVulkan(Ping::VertexFormat format)
 	throw std::runtime_error("Unhandled Ping::VertexFormat");
 }
 
+vk::Format Backend::ToVulkan(Ping::Format format)
+{
+	switch (format)
+	{
+	case Ping::Format::Undefined:
+		return vk::Format::eUndefined;
+
+	case Ping::Format::R8Unorm:
+		return vk::Format::eR8Unorm;
+	case Ping::Format::R8G8Unorm:
+		return vk::Format::eR8G8Unorm;
+	case Ping::Format::R8G8B8A8Unorm:
+		return vk::Format::eR8G8B8A8Unorm;
+	case Ping::Format::R8G8B8A8Srgb:
+		return vk::Format::eR8G8B8A8Srgb;
+	case Ping::Format::B8G8R8A8Unorm:
+		return vk::Format::eB8G8R8A8Unorm;
+	case Ping::Format::B8G8R8A8Srgb:
+		return vk::Format::eB8G8R8A8Srgb;
+
+	case Ping::Format::A2B10G10R10UnormPack32:
+		return vk::Format::eA2B10G10R10UnormPack32;
+	case Ping::Format::A2R10G10B10UnormPack32:
+		return vk::Format::eA2R10G10B10UnormPack32;
+
+	case Ping::Format::R16Unorm:
+		return vk::Format::eR16Unorm;
+	case Ping::Format::R16G16Unorm:
+		return vk::Format::eR16G16Unorm;
+	case Ping::Format::R16G16B16A16Unorm:
+		return vk::Format::eR16G16B16A16Unorm;
+
+	case Ping::Format::R16Sfloat:
+		return vk::Format::eR16Sfloat;
+	case Ping::Format::R16G16Sfloat:
+		return vk::Format::eR16G16Sfloat;
+	case Ping::Format::R16G16B16A16Sfloat:
+		return vk::Format::eR16G16B16A16Sfloat;
+	case Ping::Format::R32Sfloat:
+		return vk::Format::eR32Sfloat;
+	case Ping::Format::R32G32Sfloat:
+		return vk::Format::eR32G32Sfloat;
+	case Ping::Format::R32G32B32A32Sfloat:
+		return vk::Format::eR32G32B32A32Sfloat;
+	case Ping::Format::B10G11R11UfloatPack32:
+		return vk::Format::eB10G11R11UfloatPack32;
+
+	case Ping::Format::R8Uint:
+		return vk::Format::eR8Uint;
+	case Ping::Format::R16Uint:
+		return vk::Format::eR16Uint;
+	case Ping::Format::R32Uint:
+		return vk::Format::eR32Uint;
+
+	case Ping::Format::D16Unorm:
+		return vk::Format::eD16Unorm;
+	case Ping::Format::D32Sfloat:
+		return vk::Format::eD32Sfloat;
+	case Ping::Format::S8Uint:
+		return vk::Format::eS8Uint;
+	case Ping::Format::D24UnormS8Uint:
+		return vk::Format::eD24UnormS8Uint;
+	case Ping::Format::D32SfloatS8Uint:
+		return vk::Format::eD32SfloatS8Uint;
+	}
+	throw std::runtime_error("Unhandled Ping::Format");
+}
+
+std::optional<Ping::Format> Backend::TryToPing(vk::Format format)
+{
+	switch (format)
+	{
+	case vk::Format::eUndefined:
+		return Ping::Format::Undefined;
+
+	case vk::Format::eR8Unorm:
+		return Ping::Format::R8Unorm;
+	case vk::Format::eR8G8Unorm:
+		return Ping::Format::R8G8Unorm;
+	case vk::Format::eR8G8B8A8Unorm:
+		return Ping::Format::R8G8B8A8Unorm;
+	case vk::Format::eR8G8B8A8Srgb:
+		return Ping::Format::R8G8B8A8Srgb;
+	case vk::Format::eB8G8R8A8Unorm:
+		return Ping::Format::B8G8R8A8Unorm;
+	case vk::Format::eB8G8R8A8Srgb:
+		return Ping::Format::B8G8R8A8Srgb;
+
+	case vk::Format::eA2B10G10R10UnormPack32:
+		return Ping::Format::A2B10G10R10UnormPack32;
+	case vk::Format::eA2R10G10B10UnormPack32:
+		return Ping::Format::A2R10G10B10UnormPack32;
+
+	case vk::Format::eR16Unorm:
+		return Ping::Format::R16Unorm;
+	case vk::Format::eR16G16Unorm:
+		return Ping::Format::R16G16Unorm;
+	case vk::Format::eR16G16B16A16Unorm:
+		return Ping::Format::R16G16B16A16Unorm;
+
+	case vk::Format::eR16Sfloat:
+		return Ping::Format::R16Sfloat;
+	case vk::Format::eR16G16Sfloat:
+		return Ping::Format::R16G16Sfloat;
+	case vk::Format::eR16G16B16A16Sfloat:
+		return Ping::Format::R16G16B16A16Sfloat;
+	case vk::Format::eR32Sfloat:
+		return Ping::Format::R32Sfloat;
+	case vk::Format::eR32G32Sfloat:
+		return Ping::Format::R32G32Sfloat;
+	case vk::Format::eR32G32B32A32Sfloat:
+		return Ping::Format::R32G32B32A32Sfloat;
+	case vk::Format::eB10G11R11UfloatPack32:
+		return Ping::Format::B10G11R11UfloatPack32;
+
+	case vk::Format::eR8Uint:
+		return Ping::Format::R8Uint;
+	case vk::Format::eR16Uint:
+		return Ping::Format::R16Uint;
+	case vk::Format::eR32Uint:
+		return Ping::Format::R32Uint;
+
+	case vk::Format::eD16Unorm:
+		return Ping::Format::D16Unorm;
+	case vk::Format::eD32Sfloat:
+		return Ping::Format::D32Sfloat;
+	case vk::Format::eS8Uint:
+		return Ping::Format::S8Uint;
+	case vk::Format::eD24UnormS8Uint:
+		return Ping::Format::D24UnormS8Uint;
+	case vk::Format::eD32SfloatS8Uint:
+		return Ping::Format::D32SfloatS8Uint;
+
+	default:
+		return std::nullopt;
+	}
+}
+
+Ping::Format Backend::ToPing(vk::Format format)
+{
+	if (const std::optional<Ping::Format> mapped = TryToPing(format))
+	{
+		return *mapped;
+	}
+	throw std::runtime_error("vk::Format has no Ping::Format mapping: " + vk::to_string(format));
+}
+
 vk::ShaderStageFlags Backend::ToVulkan(Ping::ShaderStage stage)
 {
 	vk::ShaderStageFlags result{};

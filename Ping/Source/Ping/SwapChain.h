@@ -3,6 +3,8 @@
 #include <memory>
 #include <utility>
 
+#include "Types.h"
+
 /* forward declaration to avoid pulling GLFW headers into this public-facing header */
 struct GLFWwindow;
 
@@ -64,6 +66,8 @@ public:
 	void Recreate(const Device& device, GLFWwindow* window, uint32_t frames_in_flight);
 
 	std::pair<uint32_t, uint32_t> GetExtent() const;
+
+	Format GetFormat() const;
 
 private:
 	/** Owning pointer to the backend swapchain. */

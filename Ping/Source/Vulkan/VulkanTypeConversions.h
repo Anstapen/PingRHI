@@ -1,13 +1,16 @@
 #pragma once
 #include "Ping/Types.h"
 #include "VulkanCommon.h"
+#include <optional>
 #include <stdexcept>
 
 /**
  * @file
- * `Backend::ToVulkan` overloads bridging each `Ping` enum to its Vulkan equivalent. This is the one
- * place that translation happens; a new `Ping` enum value needs a corresponding case/flag check
- * added to its overload here (see CLAUDE.md's "Architecture" section).
+ * `Backend::ToVulkan` overloads bridging each `Ping` enum to its Vulkan equivalent, plus the few
+ * `Backend::ToPing` overloads needed where a value originates in Vulkan (a driver-reported surface
+ * format, for instance) and has to be handed back out through the `Ping` API. This is the one place
+ * that translation happens; a new `Ping` enum value needs a corresponding case/flag check added to
+ * its overload here (see CLAUDE.md's "Architecture" section).
  */
 
 namespace Backend
@@ -34,6 +37,30 @@ vk::MemoryPropertyFlags ToVulkan(Ping::MemoryProperty property);
 
 /** @note Aborts via `assert` if `format` has no known `vk::Format` mapping. */
 vk::Format ToVulkan(Ping::VertexFormat format);
+
+/** @throws std::runtime_error if `format` has no known `vk::Format` mapping. */
+vk::Format ToVulkan(Ping::Format format);
+
+/**
+ * Maps a driver-reported `vk::Format` back to its `Ping::Format` equivalent, or `std::nullopt` if
+ * `format` is outside the subset `Ping::Format` mirrors.
+ *
+ * Use this over `ToPing` when picking a format out of a driver-reported list (surface formats, for
+ * instance), where an unmappable entry is a candidate to skip rather than an error.
+ */
+std::optional<Ping::Format> TryToPing(vk::Format format);
+
+/**
+ * Maps a driver-reported `vk::Format` back to its `Ping::Format` equivalent.
+ *
+ * @warning Throws rather than falling back to `Ping::Format::Undefined`. `Ping::Format` mirrors only
+ * a subset of `vk::Format`, and a silent `Undefined` would travel all the way to a pipeline's colour
+ * attachment format, where it can never match the images that pipeline renders into — a loud failure
+ * at selection time is far cheaper to diagnose than a mismatch at draw time.
+ * @throws std::runtime_error if `format` is outside the subset `Ping::Format` mirrors. Prefer
+ * `TryToPing` where the caller can pick a different format instead.
+ */
+Ping::Format ToPing(vk::Format format);
 
 /** Bitwise-ORs together the `vk::ShaderStageFlagBits` for every flag set in `stage`. */
 vk::ShaderStageFlags ToVulkan(Ping::ShaderStage stage);

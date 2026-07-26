@@ -145,8 +145,7 @@ std::vector<vk::raii::DescriptorSetLayout> Backend::VKManager::CreateDescriptorS
 
 VulkanPipeline Backend::VKManager::CreatePipeline(
 	const VulkanContext&			   context,
-	const Ping::PipelineSpecification& specification,
-	vk::SurfaceFormatKHR			   surfaceFormat)
+	const Ping::PipelineSpecification& specification)
 {
 	logger->info("Creating pipeline with shader file: {}", specification.shaderFilePath);
 	std::vector<char>		   shaderCode = readFile(specification.shaderFilePath);
@@ -250,6 +249,8 @@ VulkanPipeline Backend::VKManager::CreatePipeline(
 
 	vk::raii::PipelineLayout pipelineLayout(context.device, pipelineLayoutInfo);
 
+	vk::Format format = ToVulkan(specification.imageFormat);
+
 	vk::StructureChain<vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo> pipelineCreateInfoChain = {
 		{.stageCount = 2,
 		 .pStages = shaderStages,
@@ -264,7 +265,7 @@ VulkanPipeline Backend::VKManager::CreatePipeline(
 		 .layout = pipelineLayout,
 		 .renderPass = nullptr},
 		{.colorAttachmentCount = 1,
-		 .pColorAttachmentFormats = &surfaceFormat.format,
+		 .pColorAttachmentFormats = &format,
 		 .depthAttachmentFormat = vk::Format::eD32Sfloat}};
 
 	auto graphicsPipeline =
@@ -1048,13 +1049,28 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 
 vk::SurfaceFormatKHR Backend::VKManager::SelectSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats)
 {
-	const auto formatIt = std::ranges::find_if(
+	const auto preferredIt = std::ranges::find_if(
 		availableFormats,
 		[](const auto& format)
 		{
 			return format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
 		});
-	return formatIt != availableFormats.end() ? *formatIt : availableFormats[0];
+	if (preferredIt != availableFormats.end())
+	{
+		return *preferredIt;
+	}
+
+	const auto mappableIt =
+		std::ranges::find_if(availableFormats, [](const auto& format) { return TryToPing(format.format).has_value(); });
+	if (mappableIt != availableFormats.end())
+	{
+		logger->warn(
+			"Preferred surface format eB8G8R8A8Srgb/eSrgbNonlinear unavailable; falling back to {}/{}",
+			vk::to_string(mappableIt->format), vk::to_string(mappableIt->colorSpace));
+		return *mappableIt;
+	}
+
+	throw std::runtime_error("No surface format reported by the driver maps to a Ping::Format");
 }
 
 vk::PresentModeKHR Backend::VKManager::SelectPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes)

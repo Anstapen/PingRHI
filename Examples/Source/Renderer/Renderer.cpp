@@ -138,8 +138,9 @@ void Mupfel::Renderer::Init(const Ping::Device& device, const Window& window)
 		  .stageFlags = Ping::ShaderStage::Fragment}},
 		Ping::CullMode::Back,
 		Ping::BlendFactor::Zero,
-		true};
-	pipeline = device.CreatePipeline(pipeline_spec, swapchain.value());
+		true,
+		swapchain.value().GetFormat()};
+	pipeline = device.CreatePipeline(pipeline_spec);
 	commandBuffers = device.CreateCommandBuffers(Ping::QueueType::Graphics, frames_in_flight);
 	assert(commandBuffers.has_value() && commandBuffers.value().size() > 0);
 
@@ -232,8 +233,9 @@ void Mupfel::Renderer::Init(const Ping::Device& device, const Window& window)
 		  .stageFlags = Ping::ShaderStage::Vertex}},
 		Ping::CullMode::Back,
 		Ping::BlendFactor::Zero,
-		true};
-	linePipeline = device.CreatePipeline(line_pipeline_spec, swapchain.value());
+		true,
+		swapchain.value().GetFormat()};
+	linePipeline = device.CreatePipeline(line_pipeline_spec);
 
 	lineVertexBuffer = device.CreateBuffer(
 		sizeof(LineVertex) * line_vertices.size(), Ping::BufferUsage::VertexBuffer,
