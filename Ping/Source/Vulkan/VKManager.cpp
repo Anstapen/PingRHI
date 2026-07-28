@@ -1352,8 +1352,9 @@ void Backend::VKManager::UploadImageData(
 			 * The buffer is laid out as row major, but on a pixel level.
 			 * That means each "frame row" contains frame_height times image width pixels.
 			 */
-			vk::DeviceSize offset = static_cast<uint64_t>(row * frame_height * width) +
-									static_cast<uint64_t>(frame_width * column) * bytes_per_pixel;
+			vk::DeviceSize offset =
+				(static_cast<uint64_t>(row) * frame_height * width + static_cast<uint64_t>(column) * frame_width) *
+				bytes_per_pixel;
 
 			frames.push_back(
 				vk::BufferImageCopy{

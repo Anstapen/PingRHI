@@ -147,8 +147,8 @@ private:
 	uint32_t drawable_entities = 0;
 
 	/** Camera orientation for the 2.5D "Stardew"-style view; adjustable at runtime via `DrawCameraControlsUI`. */
-	float cameraYaw = glm::radians(-90.0f);
-	float cameraPitch = glm::radians(45.0f);
+	static constexpr float cameraYaw = glm::radians(-90.0f);
+	static constexpr float cameraPitch = glm::radians(45.0f);
 	/** Distance from `cameraTarget` to the eye; driven by scroll-to-zoom in `UpdateCamera`. */
 	float cameraDistance = 25.0f;
 	/** Point the camera looks at; follows the player entity each frame in `UpdateCamera`. */

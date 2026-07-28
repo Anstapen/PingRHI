@@ -508,11 +508,6 @@ void Mupfel::Renderer::DrawLineSpawnerUI(World& world)
 void Mupfel::Renderer::DrawCameraControlsUI()
 {
 	ImGui::Begin("Camera");
-	// SliderAngle stores radians but displays/edits in degrees, matching the radian members directly.
-	ImGui::SliderAngle("Yaw", &cameraYaw, -180.0f, 180.0f);
-	// Bound pitch short of +/-90 deg: at the poles the eye lines up with lookAt's up axis and the view
-	// matrix becomes degenerate.
-	ImGui::SliderAngle("Pitch", &cameraPitch, -89.0f, 89.0f);
 	// Range mirrors the scroll-to-zoom clamp in UpdateCamera so the slider and the wheel stay consistent.
 	ImGui::SliderFloat("Distance", &cameraDistance, 5.0f, 60.0f);
 	ImGui::End();
@@ -522,17 +517,14 @@ void Mupfel::Renderer::updateMVP(Ping::Buffer& uniform_buffer)
 {
 	auto [width, height] = swapchain.value().GetExtent();
 
-	glm::vec3 eye =
-		cameraTarget + cameraDistance * glm::vec3(
-											glm::cos(cameraPitch) * glm::cos(cameraYaw),
-											glm::cos(cameraPitch) * glm::sin(cameraYaw), glm::sin(cameraPitch));
+	glm::vec3 eye = cameraTarget + cameraDistance * glm::vec3(0, -cos(cameraPitch), sin(cameraPitch));
 
 	UniformBufferObject ubo{};
 	ubo.view = lookAt(eye, cameraTarget, glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.proj =
 		glm::perspective(glm::radians(45.0f), static_cast<float>(width) / static_cast<float>(height), 0.1f, 500.0f);
 	ubo.proj[1][1] *= -1;
-	ubo.cameraRight = glm::vec4(-glm::sin(cameraYaw), glm::cos(cameraYaw), 0.0f, 0.0f);
+	ubo.cameraRight = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
 	ubo.cameraPos = glm::vec4(eye, 1.0f);
 	std::memcpy(uniform_buffer.GetMappedPtr(), &ubo, sizeof(UniformBufferObject));
 }
@@ -552,8 +544,8 @@ void Mupfel::Renderer::UpdateCamera(World& world, const Window& window, float de
 
 	if (!ImGui::GetIO().WantCaptureKeyboard)
 	{
-		const glm::vec3 right(-glm::sin(cameraYaw), glm::cos(cameraYaw), 0.0f);
-		const glm::vec3 forward(-glm::cos(cameraYaw), -glm::sin(cameraYaw), 0.0f);
+		const glm::vec3 right(1.0f, 0.0f, 0.0f);
+		const glm::vec3 forward(0.0f, 1.0f, 0.0f);
 		glm::vec3		move(0.0f);
 
 		if (window.GetKeyDown(GLFW_KEY_D))
