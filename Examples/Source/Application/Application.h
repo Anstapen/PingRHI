@@ -1,5 +1,4 @@
 #pragma once
-#include "Logger/Logger.h"
 #include "Renderer/Renderer.h"
 #include "TextureManager/ImageManager.h"
 #include "Window/Window.h"
@@ -49,8 +48,6 @@ private:
 private:
 	/** Application name passed to the constructor. */
 	const std::string name;
-	/** Logger created in `Init()`. */
-	Logger::SafeLoggerPtr logger;
 	/** The RHI device; empty until `Init()` runs. */
 	std::optional<Ping::Device> device;
 	/** The application window; empty until `Init()` runs. */

@@ -8,13 +8,13 @@
 #include <cassert>
 #include <cstdint>
 #include <fstream>
+#include <iostream>
+#include <unordered_map>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 using namespace Backend;
-
-static Mupfel::Logger::SafeLoggerPtr validation_layer_logger;
 
 static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 	vk::DebugUtilsMessageSeverityFlagBitsEXT	  messageSeverity,
@@ -24,7 +24,6 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 
 bool							   VKManager::is_initialized = false;
 std::unique_ptr<vk::raii::Context> VKManager::vk_context;
-Mupfel::Logger::SafeLoggerPtr	   VKManager::logger;
 
 void VKManager::Init()
 {
@@ -34,8 +33,6 @@ void VKManager::Init()
 	}
 
 	glfwInit();
-
-	logger = Mupfel::Logger::Create("VKManager");
 	is_initialized = true;
 	vk_context = std::make_unique<vk::raii::Context>();
 }
@@ -146,7 +143,6 @@ std::vector<vk::raii::DescriptorSetLayout> Backend::VKManager::CreateDescriptorS
 VulkanPipeline
 Backend::VKManager::CreatePipeline(const VulkanContext& context, const Ping::PipelineSpecification& specification)
 {
-	logger->info("Creating pipeline with shader file: {}", specification.shaderFilePath);
 	std::vector<char>		   shaderCode = readFile(specification.shaderFilePath);
 	vk::ShaderModuleCreateInfo createInfo{
 		.codeSize = shaderCode.size() * sizeof(char), .pCode = reinterpret_cast<const uint32_t*>(shaderCode.data())};
@@ -794,7 +790,7 @@ vk::raii::Instance VKManager::CreateInstance(
 		{
 			if (strlen(e) > 0)
 			{
-				logger->warn("validation layer {} is not supported!", e);
+				std::cout << "validation layer " << e << "is not supported!" << std::endl;
 			}
 		}
 	}
@@ -815,7 +811,8 @@ vk::raii::Instance VKManager::CreateInstance(
 	}
 	else
 	{
-		logger->warn("Debug mode enabled, but {} is not supported!", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		std::cout << "Debug mode enabled, but " << VK_EXT_DEBUG_UTILS_EXTENSION_NAME << " is not supported!"
+				  << std::endl;
 	}
 #endif
 
@@ -829,7 +826,7 @@ vk::raii::Instance VKManager::CreateInstance(
 		{
 			if (strlen(e) > 0)
 			{
-				logger->warn("extension {} is not supported!", e);
+				std::cout << "extension " << e << " is not supported!" << std::endl;
 			}
 		}
 	}
@@ -844,12 +841,6 @@ vk::raii::Instance VKManager::CreateInstance(
 	}
 
 	vk::raii::Instance instance(*vk_context, instance_create_info);
-
-	if (!validation_layer_logger)
-	{
-		validation_layer_logger = Mupfel::Logger::Create("ValidationLayer");
-		SetupDebugCallback(instance, debugCallback);
-	}
 
 	return instance;
 }
@@ -894,12 +885,12 @@ vk::raii::PhysicalDevice VKManager::SelectBestDevice(vk::raii::Instance& instanc
 {
 	std::vector<vk::raii::PhysicalDevice> phys_devices = instance.enumeratePhysicalDevices();
 
-	logger->info("Found {} physical devices.", phys_devices.size());
+	std::cout << "Found " << phys_devices.size() << " physical devices." << std::endl;
 
 	for (const auto& d : phys_devices)
 	{
 		VkPhysicalDeviceProperties device_properties = d.getProperties();
-		logger->info(device_properties.deviceName);
+		std::cout << device_properties.deviceName << std::endl;
 	}
 
 	uint32_t suitable_device_index = static_cast<uint32_t>(phys_devices.size());
@@ -1042,7 +1033,7 @@ static VKAPI_ATTR vk::Bool32 VKAPI_CALL debugCallback(
 	(void)messageSeverity;
 	(void)messageTypes;
 	(void)pUserData;
-	validation_layer_logger->warn(pCallbackData->pMessage);
+	std::cout << pCallbackData->pMessage << std::endl;
 	return vk::False;
 }
 
@@ -1063,9 +1054,6 @@ vk::SurfaceFormatKHR Backend::VKManager::SelectSurfaceFormat(const std::vector<v
 		std::ranges::find_if(availableFormats, [](const auto& format) { return TryToPing(format.format).has_value(); });
 	if (mappableIt != availableFormats.end())
 	{
-		logger->warn(
-			"Preferred surface format eB8G8R8A8Srgb/eSrgbNonlinear unavailable; falling back to {}/{}",
-			vk::to_string(mappableIt->format), vk::to_string(mappableIt->colorSpace));
 		return *mappableIt;
 	}
 

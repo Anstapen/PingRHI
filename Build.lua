@@ -25,7 +25,6 @@ group "Ping"
 	include "Ping/Build-Ping.lua"
 group ""
 
-include "Build-spdlog.lua"
 include "Build-ImGui.lua"
 
 include "Examples/Build-Examples.lua"

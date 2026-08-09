@@ -108,8 +108,6 @@ static const uint32_t default_light_capacity = 100;
 
 void Mupfel::Renderer::Init(const Ping::Device& device, const Window& window)
 {
-	logger = Logger::Create("Renderer");
-	logger->info("Init");
 	swapchain = device.CreateSwapChain(window.GetGLFWHandle(), frames_in_flight);
 	depthBuffer = device.CreateDepthBuffer(swapchain.value());
 	Ping::PipelineSpecification pipeline_spec{
@@ -205,7 +203,6 @@ void Mupfel::Renderer::Init(const Ping::Device& device, const Window& window)
 
 	if (!default_image.has_value())
 	{
-		logger->warn("Unable to load {}.", defaul_image_path);
 		return;
 	}
 
@@ -273,7 +270,6 @@ void Mupfel::Renderer::EnsureTransformCapacity(const Ping::Device& device, uint3
 		new_capacity *= 2;
 	}
 
-	logger->info("Growing transform buffers from {} to {} entities", transformCapacity, new_capacity);
 
 	/* Every frame-in-flight buffer is recreated together, so no in-flight submission may still be
 	 * reading the old buffers/descriptor sets we're about to destroy. */
@@ -307,7 +303,6 @@ void Mupfel::Renderer::EnsureLightCapacity(const Ping::Device& device, uint32_t 
 		new_capacity *= 2;
 	}
 
-	logger->info("Growing light buffers from {} to {} entities", lightCapacity, new_capacity);
 
 	/* Every frame-in-flight buffer is recreated together, so no in-flight submission may still be
 	 * reading the old buffers/descriptor sets we're about to destroy. */

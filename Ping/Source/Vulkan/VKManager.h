@@ -1,5 +1,4 @@
 #pragma once
-#include "Logger/Logger.h"
 #include "Ping/Pipeline.h"
 #include "VKUtil.h"
 #include "VulkanBuffer.h"
@@ -344,8 +343,6 @@ private:
 	static bool is_initialized;
 	/** The shared `vk::raii::Context`, created by `Init`. */
 	static std::unique_ptr<vk::raii::Context> vk_context;
-	/** Logger created by `Init`, used throughout `VKManager`. */
-	static Mupfel::Logger::SafeLoggerPtr logger;
 	/** Currently unused. */
 	static std::array<char*, 32> extension_array;
 };

@@ -8,7 +8,6 @@
 #include "Application/World.h"
 #include "ECS/Components/Movement.h"
 #include "ECS/Components/Transform.h"
-#include "Logger/Logger.h"
 #include "Ping/Buffer.h"
 #include "Ping/DescriptorSets.h"
 #include "Ping/Device.h"
@@ -102,8 +101,6 @@ private:
 	static constexpr uint32_t max_textures = 4096;
 	/** Current frame-in-flight slot, in `[0, frames_in_flight)`. */
 	uint32_t frameIndex = 0;
-	/** Logger created in `Init`. */
-	Logger::SafeLoggerPtr logger;
 	/** Empty until `Init` runs. */
 	std::optional<Ping::SwapChain> swapchain;
 	/** Empty until `Init` runs. */

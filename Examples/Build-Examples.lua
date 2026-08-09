@@ -16,7 +16,6 @@ project "Examples"
 	  "../Ping/Source",
        "../Vendor/Sources/glfw-3.4.bin.WIN64/include",
        vulkan_sdk_path .. "/Include",
-       "../" .. spdlog_dir .. "/include",
        "../" .. imgui_dir
    }
 
@@ -28,7 +27,6 @@ project "Examples"
       "Ping",
       "vulkan",
       "glfw3",
-      "spdlog",
       "imgui"
    }
 

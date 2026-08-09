@@ -1,5 +1,4 @@
 #pragma once
-#include "Logger/Logger.h"
 #include "Ping/Types.h"
 #include "VulkanCommon.h"
 #include <optional>

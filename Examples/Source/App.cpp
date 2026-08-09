@@ -1,5 +1,4 @@
 #include "Application/Application.h"
-#include "Logger/Logger.h"
 #include <cstdlib>
 #include <stdexcept>
 
@@ -7,10 +6,7 @@ using namespace Mupfel;
 
 int main()
 {
-	Logger::Init();
 
-	auto main_logger = Logger::Create("main");
-	main_logger->info("Starting application...");
 	try
 	{
 		Application app("Vulkan Playground");
@@ -18,7 +14,6 @@ int main()
 	}
 	catch (const std::exception& e)
 	{
-		main_logger->error("Exception: {}", e.what());
 		return EXIT_FAILURE;
 	}
 

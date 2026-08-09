@@ -14,7 +14,7 @@
 
 #include <random>
 
-Mupfel::Application::Application(const std::string& in_name) : name(in_name), renderer(), logger(), device(), world() {}
+Mupfel::Application::Application(const std::string& in_name) : name(in_name), renderer(), device(), world() {}
 
 Mupfel::Application::~Application()
 {
@@ -32,14 +32,10 @@ void Mupfel::Application::Run()
 
 void Mupfel::Application::Init()
 {
-	/* Create a Logger for the Application */
-	logger = Logger::Create("App");
-	logger->info("Initializing");
 
 	/* Initialize the Graphics library */
 	if (!Ping::Init())
 	{
-		logger->error("Failed to initialize Ping");
 		assert(false);
 	}
 	window = Window();
