@@ -56,6 +56,12 @@ void Ping::CommandBuffer::BeginRendering(SwapChain& swapchain, Image& depth_buff
 		image_index);
 }
 
+void Ping::CommandBuffer::BeginRendering(SwapChain& swapchain, uint32_t image_index)
+{
+	Backend::VKManager::beginRendering(
+		*vulkanCommandBufferPtr, *swapchain.vulkanSwapChainPtr, image_index);
+}
+
 void Ping::CommandBuffer::BindPipeline(Pipeline& pipeline)
 {
 	vulkanCommandBufferPtr->BindPipeline(*pipeline.vulkanPipelinePtr);

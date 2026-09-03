@@ -195,6 +195,8 @@ public:
 		VulkanImage&		 depth_buffer,
 		uint32_t			 imageIndex);
 
+	static void beginRendering(VulkanCommandBuffer& cmd_buffer, VulkanSwapChain& swapchain, uint32_t imageIndex);
+
 	/**
 	 * @throws std::runtime_error if `context` has no queue of type `wanted_queue_type`.
 	 * @return Index into `context.queues` of the first queue matching `wanted_queue_type`.
@@ -212,14 +214,18 @@ public:
 
 	static std::optional<VulkanImage> LoadVulkanImage(
 		const VulkanContext& context,
-		const std::string&	 path,
+		unsigned char*		 image_buffer,
+		uint32_t			 texture_width,
+		uint32_t			 texture_height,
 		vk::ImageUsageFlags	 usage,
 		uint32_t			 rows = 1,
 		uint32_t			 columns = 1);
 
 	static std::optional<std::vector<VulkanImage>> LoadVulkanImages(
 		const VulkanContext& context,
-		const std::string&	 path,
+		unsigned char*		 image_buffer,
+		uint32_t			 texture_width,
+		uint32_t			 texture_height,
 		vk::ImageUsageFlags	 usage,
 		uint32_t			 rows,
 		uint32_t			 columns);

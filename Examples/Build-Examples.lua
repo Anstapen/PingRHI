@@ -1,22 +1,45 @@
-project "Examples"
+-- Every example is a standalone executable, built from its own directory plus the shared
+-- code in Common, which is always included. To add an example, create a directory next to
+-- Common and list its name here.
+local examples =
+{
+   "HelloTriangle"
+}
+
+group "Examples"
+
+for _, example_name in ipairs(examples) do
+
+project (example_name)
    kind "ConsoleApp"
    language "C++"
    cppdialect "C++23"
-   targetdir "Binaries/%{cfg.buildcfg}"
    staticruntime "off"
 
-   files { "Source/**.h", "Source/**.cpp", "Shaders/**.glsl" }
+   files
+   {
+      example_name .. "/**.h",
+      example_name .. "/**.cpp",
+      example_name .. "/**.slang",
+
+      -- Shared by every example
+      "Common/**.h",
+      "Common/**.cpp",
+      "Shaders/**.slang"
+   }
 
    includedirs
    {
-      "Source",
-      "Source/MupfelDeps",
+      example_name,
+      "Common",
 
 	  -- Include Ping
 	  "../Ping/Source",
        "../Vendor/Sources/glfw-3.4.bin.WIN64/include",
        vulkan_sdk_path .. "/Include",
-       "../" .. imgui_dir
+       "../" .. imgui_dir,
+       "../" .. glm_dir,
+       "../" .. glm_dir .. "/glm"
    }
 
    libdirs {vulkan_sdk_path .. "/Lib"}
@@ -53,3 +76,9 @@ project "Examples"
        runtime "Release"
        optimize "On"
        symbols "Off"
+
+   filter {}
+
+end
+
+group ""

@@ -12,7 +12,7 @@ Window::Window() : window(nullptr)
 	assert(glfwInit() == GLFW_TRUE);
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-	const std::string window_name("Vulkan Playground");
+	const std::string window_name("Window");
 	uint32_t		  window_size_x = 800;
 	uint32_t		  window_size_y = 600;
 	this->window = glfwCreateWindow(window_size_x, window_size_y, window_name.c_str(), nullptr, nullptr);

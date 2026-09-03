@@ -59,6 +59,8 @@ public:
 	 */
 	void BeginRendering(SwapChain& swapchain, Image& depth_buffer, uint32_t image_index);
 
+	void BeginRendering(SwapChain& swapchain, uint32_t image_index);
+
 	/** Binds `pipeline` for subsequent draw calls. */
 	void BindPipeline(Pipeline& pipeline);
 
@@ -88,7 +90,7 @@ public:
 	void Draw(uint32_t vertex_count) const;
 
 	/** Records an indexed draw of index_count vertices from the currently bound vertex buffer. */
-	void DrawIndexed(uint32_t index_count, uint32_t instance_count) const;
+	void DrawIndexed(uint32_t index_count, uint32_t instance_count = 1) const;
 
 	/** Ends the dynamic rendering pass started by `BeginRendering`. */
 	void EndRendering() const;

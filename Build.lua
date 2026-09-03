@@ -10,10 +10,10 @@ end
 
 include "Dependencies.lua"
 
-workspace "Vulkan Starter"
+workspace "PingRHI"
    architecture "x64"
    configurations { "Debug", "Release", "Dist" }
-   startproject "Examples"
+   startproject "HelloTriangle"
 
    -- Workspace-wide build options for MSVC
    filter "system:windows"

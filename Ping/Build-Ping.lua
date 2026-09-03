@@ -19,7 +19,6 @@ project "Ping"
    "Source",
    vulkan_sdk_path .. "/Include",
    "../" .. glfw_dir .."/include",
-   "../" .. stb_dir,
    "../" .. imgui_dir,
    "../" .. imgui_dir .. "/backends"
    }
